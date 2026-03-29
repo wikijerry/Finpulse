@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — FinPulse</title>
+  <meta name="description" content="Admin login for FinPulse editorial dashboard." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="admin-login">
+    <div class="admin-login__box">
+      <div class="admin-login__header">
+        <p class="admin-login__brand">FP—FINPULSE 01</p>
+        <h1 class="admin-login__title">ADMIN<br/>ACCESS</h1>
+        <p class="admin-login__subtitle">Editorial dashboard — authorized users only</p>
+      </div>
+
+      <form id="login-form">
+        <div class="form-group">
+          <label class="form-label" for="login-username">Username</label>
+          <input class="form-input" type="text" id="login-username" placeholder="Enter username" required autocomplete="username" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="login-password">Password</label>
+          <input class="form-input" type="password" id="login-password" placeholder="Enter password" required autocomplete="current-password" />
+        </div>
+
+        <p class="form-error" id="login-error">Invalid credentials. Please try again.</p>
+
+        <button type="submit" class="btn-primary">Access Dashboard</button>
+      </form>
+
+      <p style="margin-top: 1.5rem; text-align: center; font-size: 0.65rem; color: var(--burnt-umber); letter-spacing: 0.05em;">
+        Default credentials: admin / finpulse2026
+      </p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // Default admin credentials (in real app, use proper auth)
+      const ADMIN_USER = 'admin';
+      const ADMIN_PASS = 'finpulse2026';
+
+      // Check if already logged in
+      if (localStorage.getItem('fp_admin_auth') === 'true') {
+        window.location.href = 'admin.html';
+        return;
+      }
+
+      const form = document.getElementById('login-form');
+      const errorEl = document.getElementById('login-error');
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+
+        if (username === ADMIN_USER && password === ADMIN_PASS) {
+          localStorage.setItem('fp_admin_auth', 'true');
+          localStorage.setItem('fp_admin_user', username);
+          window.location.href = 'admin.html';
+        } else {
+          errorEl.classList.add('visible');
+          setTimeout(() => errorEl.classList.remove('visible'), 3000);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

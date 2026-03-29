@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — FinPulse Admin</title>
+  <meta name="description" content="FinPulse editorial dashboard for managing articles." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="admin-wrapper" id="admin-wrapper">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <span class="admin-sidebar__brand">FP—FINPULSE</span>
+      <span class="admin-sidebar__label">Admin Dashboard</span>
+      <ul class="admin-nav" id="admin-nav">
+        <li class="admin-nav__item active" data-panel="overview">Overview</li>
+        <li class="admin-nav__item" data-panel="articles">All Articles</li>
+        <li class="admin-nav__item" data-panel="editor">New Article</li>
+      </ul>
+      <button class="admin-sidebar__logout" id="admin-logout">Logout</button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <!-- Overview Panel -->
+      <div class="editor-panel active" id="panel-overview">
+        <div class="admin-main__header">
+          <h1 class="admin-main__title">Overview</h1>
+          <button class="btn-accent" onclick="switchPanel('editor')">+ New Article</button>
+        </div>
+
+        <div class="stats-grid" id="stats-grid">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="section-header" style="padding-left: 0;">
+          <span class="section-header__title">Recent Articles</span>
+        </div>
+        <table class="admin-table" id="recent-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="recent-tbody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Articles Panel -->
+      <div class="editor-panel" id="panel-articles">
+        <div class="admin-main__header">
+          <h1 class="admin-main__title">All Articles</h1>
+          <button class="btn-accent" onclick="switchPanel('editor')">+ New Article</button>
+        </div>
+
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Category</th>
+              <th>Author</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="all-articles-tbody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Editor Panel -->
+      <div class="editor-panel" id="panel-editor">
+        <div class="admin-main__header">
+          <h1 class="admin-main__title" id="editor-title">New Article</h1>
+        </div>
+
+        <form class="editor-panel__form" id="article-form">
+          <input type="hidden" id="edit-id" value="" />
+
+          <div class="form-group">
+            <label class="form-label" for="article-title">Article Title</label>
+            <input class="form-input" type="text" id="article-title" placeholder="Enter headline..." required />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="article-category">Category</label>
+              <select class="form-select" id="article-category" required>
+                <option value="">Select category</option>
+                <option value="Markets">Markets</option>
+                <option value="Personal Finance">Personal Finance</option>
+                <option value="Economy">Economy</option>
+                <option value="World News">World News</option>
+                <option value="Opinion">Opinion</option>
+                <option value="Tech">Tech</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="article-author">Author</label>
+              <input class="form-input" type="text" id="article-author" placeholder="Author name" required />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="article-excerpt">Excerpt</label>
+            <input class="form-input" type="text" id="article-excerpt" placeholder="Brief summary for article cards..." required />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="article-image">Image URL (optional)</label>
+            <input class="form-input" type="url" id="article-image" placeholder="https://example.com/image.jpg" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="article-body">Article Body (HTML supported)</label>
+            <textarea class="form-textarea" id="article-body" placeholder="Write your article content here... HTML tags like <p>, <h2>, <h3>, <blockquote>, <ul> are supported." required></textarea>
+          </div>
+
+          <div class="editor-actions">
+            <button type="submit" class="btn-accent" id="publish-btn">Publish Article</button>
+            <button type="button" class="btn-outline" id="draft-btn">Save as Draft</button>
+            <button type="button" class="btn-outline" id="cancel-btn">Cancel</button>
+          </div>
+        </form>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="data.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      // --- Auth Guard ---
+      if (localStorage.getItem('fp_admin_auth') !== 'true') {
+        window.location.href = 'admin-login.html';
+        return;
+      }
+
+      // --- State ---
+      let articles = [];
+      let editingId = null;
+
+      // --- Init ---
+      loadArticles();
+      renderOverview();
+      renderAllArticles();
+      initNav();
+      initForm();
+      initLogout();
+
+      // --- Load ---
+      function loadArticles() {
+        const stored = JSON.parse(localStorage.getItem('blog_articles') || '[]');
+        articles = stored.length > 0 ? stored : [...SAMPLE_ARTICLES];
+      }
+
+      function saveArticles() {
+        localStorage.setItem('blog_articles', JSON.stringify(articles));
+      }
+
+      // --- Nav ---
+      function initNav() {
+        document.getElementById('admin-nav').addEventListener('click', (e) => {
+          const item = e.target.closest('.admin-nav__item');
+          if (!item) return;
+          switchPanel(item.dataset.panel);
+        });
+      }
+
+      window.switchPanel = function (panelName) {
+        // Update nav
+        document.querySelectorAll('.admin-nav__item').forEach(el => el.classList.remove('active'));
+        const navItem = document.querySelector(`[data-panel="${panelName}"]`);
+        if (navItem) navItem.classList.add('active');
+
+        // Update panels
+        document.querySelectorAll('.editor-panel').forEach(el => el.classList.remove('active'));
+        document.getElementById(`panel-${panelName}`).classList.add('active');
+
+        // If switching to editor for new article, reset form
+        if (panelName === 'editor' && !editingId) {
+          resetForm();
+          document.getElementById('editor-title').textContent = 'New Article';
+        }
+
+        // Refresh lists
+        if (panelName === 'overview') renderOverview();
+        if (panelName === 'articles') renderAllArticles();
+      };
+
+      // --- Overview ---
+      function renderOverview() {
+        const published = articles.filter(a => a.status === 'published').length;
+        const drafts = articles.filter(a => a.status === 'draft').length;
+        const total = articles.length;
+        const categories = [...new Set(articles.map(a => a.category))].length;
+
+        document.getElementById('stats-grid').innerHTML = `
+          <div class="stat-card">
+            <span class="stat-card__label">Total Articles</span>
+            <span class="stat-card__value">${total}</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Published</span>
+            <span class="stat-card__value">${published}</span>
+            <span class="stat-card__sub">Live on site</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Drafts</span>
+            <span class="stat-card__value">${drafts}</span>
+            <span class="stat-card__sub">Pending review</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-card__label">Categories</span>
+            <span class="stat-card__value">${categories}</span>
+          </div>
+        `;
+
+        // Recent articles (last 5)
+        const recent = [...articles].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+        document.getElementById('recent-tbody').innerHTML = recent.map(a => articleRow(a, false)).join('');
+      }
+
+      // --- All Articles ---
+      function renderAllArticles() {
+        const sorted = [...articles].sort((a, b) => new Date(b.date) - new Date(a.date));
+        document.getElementById('all-articles-tbody').innerHTML = sorted.map(a => articleRow(a, true)).join('');
+      }
+
+      function articleRow(article, showAuthor) {
+        const statusClass = article.status === 'published' ? 'published' : 'draft';
+        return `
+          <tr>
+            <td style="font-weight: 500; max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${article.title}</td>
+            <td><span style="color: var(--accent); font-size: 0.75rem; font-weight: 500; text-transform: uppercase; letter-spacing: 0.1em;">${article.category}</span></td>
+            ${showAuthor ? `<td style="color: var(--text-secondary);">${article.author}</td>` : ''}
+            <td style="color: var(--text-secondary); white-space: nowrap;">${formatDate(article.date)}</td>
+            <td><span class="admin-table__status ${statusClass}">${article.status}</span></td>
+            <td>
+              <div class="admin-table__actions">
+                <button onclick="editArticle(${article.id})">Edit</button>
+                ${article.status === 'draft' ? `<button onclick="publishArticle(${article.id})">Publish</button>` : ''}
+                <button class="delete" onclick="deleteArticle(${article.id})">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }
+
+      // --- Form ---
+      function initForm() {
+        const form = document.getElementById('article-form');
+        const draftBtn = document.getElementById('draft-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          saveArticle('published');
+        });
+
+        draftBtn.addEventListener('click', () => {
+          if (validateForm()) {
+            saveArticle('draft');
+          }
+        });
+
+        cancelBtn.addEventListener('click', () => {
+          editingId = null;
+          resetForm();
+          switchPanel('articles');
+        });
+      }
+
+      function validateForm() {
+        const title = document.getElementById('article-title').value.trim();
+        const category = document.getElementById('article-category').value;
+        const author = document.getElementById('article-author').value.trim();
+        const body = document.getElementById('article-body').value.trim();
+        return title && category && author && body;
+      }
+
+      function saveArticle(status) {
+        const title = document.getElementById('article-title').value.trim();
+        const category = document.getElementById('article-category').value;
+        const author = document.getElementById('article-author').value.trim();
+        const excerpt = document.getElementById('article-excerpt').value.trim();
+        const image = document.getElementById('article-image').value.trim();
+        const body = document.getElementById('article-body').value.trim();
+
+        // Estimate read time
+        const wordCount = body.split(/\s+/).length;
+        const readTime = Math.max(1, Math.ceil(wordCount / 200)) + ' min';
+
+        if (editingId) {
+          // Update existing
+          const idx = articles.findIndex(a => a.id === editingId);
+          if (idx > -1) {
+            articles[idx] = {
+              ...articles[idx],
+              title,
+              category,
+              author,
+              excerpt,
+              image,
+              body: formatBody(body),
+              readTime,
+              status
+            };
+          }
+          showToast('Article updated successfully');
+        } else {
+          // Create new
+          const newId = articles.length > 0 ? Math.max(...articles.map(a => a.id)) + 1 : 1;
+          const today = new Date().toISOString().split('T')[0];
+
+          articles.unshift({
+            id: newId,
+            title,
+            category,
+            author,
+            excerpt,
+            image,
+            body: formatBody(body),
+            date: today,
+            readTime,
+            status,
+            featured: false
+          });
+          showToast(status === 'published' ? 'Article published!' : 'Draft saved');
+        }
+
+        saveArticles();
+        editingId = null;
+        resetForm();
+        switchPanel('articles');
+      }
+
+      function formatBody(text) {
+        // If it already contains HTML tags, return as-is
+        if (text.includes('<p>') || text.includes('<h2>') || text.includes('<h3>')) {
+          return text;
+        }
+        // Wrap paragraphs
+        return text.split('\n\n').map(p => `<p>${p.trim()}</p>`).join('\n');
+      }
+
+      function resetForm() {
+        document.getElementById('article-form').reset();
+        document.getElementById('edit-id').value = '';
+        editingId = null;
+      }
+
+      // --- Actions ---
+      window.editArticle = function (id) {
+        const article = articles.find(a => a.id === id);
+        if (!article) return;
+
+        editingId = id;
+
+        document.getElementById('editor-title').textContent = 'Edit Article';
+        document.getElementById('edit-id').value = id;
+        document.getElementById('article-title').value = article.title;
+        document.getElementById('article-category').value = article.category;
+        document.getElementById('article-author').value = article.author;
+        document.getElementById('article-excerpt').value = article.excerpt || '';
+        document.getElementById('article-image').value = article.image || '';
+        document.getElementById('article-body').value = article.body;
+
+        switchPanel('editor');
+      };
+
+      window.publishArticle = function (id) {
+        const idx = articles.findIndex(a => a.id === id);
+        if (idx > -1) {
+          articles[idx].status = 'published';
+          saveArticles();
+          renderOverview();
+          renderAllArticles();
+          showToast('Article published!');
+        }
+      };
+
+      window.deleteArticle = function (id) {
+        if (!confirm('Are you sure you want to delete this article?')) return;
+        articles = articles.filter(a => a.id !== id);
+        saveArticles();
+        renderOverview();
+        renderAllArticles();
+        showToast('Article deleted');
+      };
+
+      // --- Logout ---
+      function initLogout() {
+        document.getElementById('admin-logout').addEventListener('click', () => {
+          localStorage.removeItem('fp_admin_auth');
+          localStorage.removeItem('fp_admin_user');
+          window.location.href = 'admin-login.html';
+        });
+      }
+
+      // --- Helpers ---
+      function formatDate(dateStr) {
+        const d = new Date(dateStr);
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      function showToast(message) {
+        let toast = document.getElementById('toast');
+        if (!toast) {
+          toast = document.createElement('div');
+          toast.id = 'toast';
+          toast.className = 'toast';
+          document.body.appendChild(toast);
+        }
+        toast.textContent = message;
+        toast.classList.add('visible');
+        setTimeout(() => toast.classList.remove('visible'), 3000);
+      }
+
+    })();
+  </script>
+</body>
+</html>

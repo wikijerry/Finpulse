@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FinPulse — Finance & Daily News</title>
+  <meta name="description" content="Premium editorial coverage of financial markets, personal finance strategies, and breaking daily news. Stay informed with FinPulse." />
+  <meta property="og:title" content="FinPulse — Finance & Daily News" />
+  <meta property="og:description" content="Premium editorial coverage of financial markets, personal finance, and breaking news." />
+  <meta property="og:type" content="website" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav class="nav" id="main-nav">
+    <span class="nav__brand">FP—FINPULSE 01</span>
+    <ul class="nav__links" id="nav-links">
+      <li><a href="index.html" class="active">Home</a></li>
+      <li><a href="index.html#articles">Finance</a></li>
+      <li><a href="index.html#articles">News</a></li>
+      <li><a href="#" id="search-btn">Search</a></li>
+      <li><a href="admin-login.html">Admin</a></li>
+    </ul>
+    <span class="nav__status">LIVE MARKET DATA</span>
+    <button class="nav__hamburger" id="nav-hamburger" aria-label="Toggle menu">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+  </nav>
+
+  <!-- Ticker Bar -->
+  <div class="ticker-bar" id="ticker-bar" style="margin-top: 48px;"></div>
+
+  <!-- Breaking News -->
+  <div class="breaking-banner" id="breaking-news"></div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero__headline">
+      <span class="hero__headline-back" aria-hidden="true">FINPULSE</span>
+      <h1 class="hero__headline-front">FINPULSE</h1>
+    </div>
+    <div class="hero__label">
+      <span class="hero__label-line"></span>
+      <span class="hero__label-text">Markets & Money — Daily Briefing</span>
+      <span class="hero__label-line"></span>
+    </div>
+    <p class="hero__sub">
+      Sharp analysis on global markets, personal finance strategies, and the stories shaping the economic landscape. No noise — just signal.
+    </p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- Section Header -->
+  <div class="section-header" id="articles">
+    <span class="section-header__title">Latest Articles</span>
+    <a href="#" class="section-header__action">View Archive</a>
+  </div>
+
+  <!-- Category Tabs -->
+  <div class="category-tabs" id="category-tabs"></div>
+
+  <!-- Articles Grid -->
+  <div class="articles-grid" id="articles-grid"></div>
+
+  <!-- Market Snapshot -->
+  <div class="market-snapshot">
+    <h2 class="market-snapshot__title">Market Snapshot</h2>
+    <div class="market-snapshot__grid">
+      <div class="market-item">
+        <span class="market-item__name">S&P 500</span>
+        <span class="market-item__value">5,842</span>
+        <span class="market-item__change up">▲ +0.47%</span>
+      </div>
+      <div class="market-item">
+        <span class="market-item__name">Gold</span>
+        <span class="market-item__value">$2,178</span>
+        <span class="market-item__change up">▲ +0.31%</span>
+      </div>
+      <div class="market-item">
+        <span class="market-item__name">Bitcoin</span>
+        <span class="market-item__value">$87,245</span>
+        <span class="market-item__change up">▲ +2.14%</span>
+      </div>
+      <div class="market-item">
+        <span class="market-item__name">Crude Oil</span>
+        <span class="market-item__value">$95.12</span>
+        <span class="market-item__change up">▲ +1.82%</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Bottom Grid — Statement + Newsletter -->
+  <div class="bottom-grid">
+    <div class="bottom-grid__statement">
+      <p>
+        We decode the complexity of global finance into clear, actionable insight.
+        Every article is crafted for the reader who demands depth without the noise.
+      </p>
+      <div class="status-indicator">
+        <span class="status-indicator__dot"></span>
+        <span class="status-indicator__text">Publishing Daily — Edition 047</span>
+      </div>
+    </div>
+    <div></div>
+    <div class="bottom-grid__form">
+      <h3 class="bottom-grid__form-title">Stay Informed</h3>
+      <form class="newsletter-form" id="newsletter-form">
+        <input type="email" placeholder="your@email.com" required />
+        <button type="submit">Subscribe</button>
+      </form>
+      <p class="newsletter-caption">Zero spam. Pure utility.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <span class="footer__copy">© 2026 FinPulse. All Rights Reserved.</span>
+    <div class="footer__links">
+      <a href="#">Privacy</a>
+      <a href="#">Terms</a>
+      <a href="#">Contact</a>
+    </div>
+  </footer>
+
+  <!-- Search Overlay -->
+  <div class="search-overlay" id="search-overlay">
+    <button class="search-overlay__close" id="search-close">ESC — Close</button>
+    <div class="search-overlay__inner">
+      <input type="text" class="search-overlay__input" id="search-input" placeholder="Search..." autocomplete="off" />
+      <div class="search-results" id="search-results"></div>
+    </div>
+  </div>
+
+  <!-- Rotating Badge -->
+  <div class="rotating-badge">
+    <svg viewBox="0 0 64 64">
+      <defs>
+        <path id="badge-path" d="M 32,32 m -24,0 a 24,24 0 1,1 48,0 a 24,24 0 1,1 -48,0" fill="none" />
+      </defs>
+      <circle cx="32" cy="32" r="30" />
+      <text>
+        <textPath href="#badge-path">FINPULSE • DAILY BRIEFING • FINPULSE • DAILY BRIEFING •</textPath>
+      </text>
+    </svg>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
